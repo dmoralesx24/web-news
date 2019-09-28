@@ -2,7 +2,6 @@
 const express = require('express');
 const logger = require("morgan");
 const mongoose = require('mongoose');
-const exphbs = require("express-handlebars");
 
 // the tools I need for scraping
 const axios = require('axios');
@@ -11,10 +10,13 @@ const cheerio = require('cheerio');
 // requiring all the database models created 
 const db = require('./models');
 
-const PORT = 3000;
+const PORT = 3002;
 
 // initializing express
 const app = express();
+
+// making a public static folder 
+app.use(express.static("public"));
 
 // configure middleware
 
@@ -24,20 +26,10 @@ app.use(logger('dev'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// making a public static folder 
-app.use(express.static('public'));
-
-// initializing handlebars
-app.engine("handlebars", exphbs({ defaultLayout: "main" }));
-app.set("view engine", "handlebars");
-
 // connecting to the database
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/mongoHeadlines";
 mongoose.connect(MONGODB_URI, { useNewUrlParser: true });
 
-app.get("/", function(req, res) {
-    res.render("index");
-})
 
 // this will be the get route for the scraping of the New York times website
 app.get("/scrape", function(req, res) {
@@ -79,11 +71,30 @@ app.get("/articles", function(req, res) {
     });
 });
 
-// A route for grabbing a specific article by the id and let them save that specific article
+// A route for grabbing a specific article by the id and populate it with that specific note
 app.get("/articles/:id", function(req, res) {
     // using id passed in its parameter prepare a query that find the matching one
-    db.Article.findOne({ _id: req.params.id }).then()
-})
+    // populate all of the saved Articles associated 
+    db.Article.findOne({ _id: req.params.id }).populate("note")
+    .then(function(dbArticle) {
+        // if we were able to successfully find an article send it back to the client
+        res.json(dbArticle);
+    }).catch(function(err) {
+        // if there is an error send it to the client
+        res.json(err);
+    })
+});
+
+app.post("/articles/:id", function (req, res) {
+    // creating a new note and pass the req.body to the entry
+    db.Note.create(req.body).then(function(dbNote) {
+        return db.Article.findOneAndUpdate({ _id: req.params.id }, { note: dbNote._id }, { new: true });
+    }).then(function(dbArticle) {
+        res.json(dbArticle);
+    }).catch(function(err) {
+        res.json(err);
+    });
+});
 
 // starting the server
 app.listen(PORT, function() {

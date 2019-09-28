@@ -6,10 +6,14 @@ const ArticleSchema = new Schema({
     // title for article
     title: {
         type: String,
-        required: true
+        required: true,
     },
     // link that the article comes from in a string
     link: {
+        type: String,
+        required: true
+    },
+    body: {
         type: String,
         required: true
     },
@@ -19,6 +23,10 @@ const ArticleSchema = new Schema({
     note: {
         type: Schema.Types.ObjectId,
         ref: "Note"
+    },
+
+    saved: {
+        type: false
     }
 });
 
