@@ -29,7 +29,7 @@ $(document).ready(function() {
         $("<a class='article-link' target='_blank' rel='noopener noreferrer'>")
           .attr("href", article.link)
           .text(article.title),
-        $("<a class='btn btn-success save'>Save Article</a>"),
+        $("<a class='btn btn-success save-article'>Save Article</a>"),
         $("<a class='btn btn-secondary notes'>Article Notes</a>")
       )
     );
@@ -57,13 +57,11 @@ $(document).ready(function() {
   });
 
   // Whenever someone clicks the note button
-  $(document).on("click", ".btn.notes", function() {
+  $(document).on("click",".btn.notes", function() {
     // Empty the notes from the note section
-    $("#notes").empty();
     // Save the id from the article
     let thisId = $(this)
     .parents(".card").attr("data-id");
-
     $(".modal").modal("show");
 
     // Now make an ajax call for the Article
@@ -83,8 +81,8 @@ $(document).ready(function() {
         $(".modal-body").append("<p>Text</p>");
         $(".modal-body").append("<textarea id='bodyinput' name='body'></textarea>");
         // A button to submit a new note, with the id of the article saved to it
-        $(".modal-footer").append("<button class='btn btn-success save'>Save Note</button>")
-        $(".btn.save").attr("data-id='" + data._id);
+        $(".modal-footer").append("<button class='btn btn-success save-note'>Save Note</button>")
+        $(".btn.save-note").attr("data-id='" + data._id);
 
         // If there's a note in the article
         if (data.note) {
@@ -93,19 +91,11 @@ $(document).ready(function() {
           // Place the body of the note in the body textarea
           $("#bodyinput").val(data.note.body);
         }
-
-        // var noteData = {
-        //   _id: thisId,
-        //   notes: data || []
-        // };
-        // // Adding some information about the article and article notes to the save button for easy access
-        // // When trying to add a new note
-        // $(".btn.save").data("article", noteData);
       });
   });
 
   // When you click the savenote button
-  $(".btn.save").on("click", function() {
+  $(document).on("click", ".btn.save-note", function() {
     // Grab the id associated with the article from the submit button
     // let noteData;
     // let newNote = $("#titleinput #bodyinput").val()
@@ -137,12 +127,11 @@ $(document).ready(function() {
         console.log(data);
         // Empty the notes section
       });
-    
-    $(".modal-body").empty();
-    $(".modal").modal("hide");
     // Also, remove the values entered in the input and textarea for note entry
+
     $("#titleinput").val("");
     $("#bodyinput").val("");
+    $(".modal").modal("hide");
 
   });
 

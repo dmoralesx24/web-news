@@ -1,18 +1,43 @@
 
+/* global bootbox */
 $(document).ready(function() {
-  $.getJSON("/articles", function(data) {
-    // For each one
-   renderArticles(data);
-  });
+  // Getting a reference to the article container div we will be rendering all articles inside of
+  var articleContainer = $(".article-container");
+  // Adding event listeners for dynamically generated buttons for deleting articles,
+  // pulling up article notes, saving article notes, and deleting article notes
+  $(document).on("click", ".btn.delete", handleArticleDelete);
+  $(document).on("click", ".btn.notes", handleArticleNotes);
+  $(document).on("click", ".btn.save", handleNoteSave);
+  $(document).on("click", ".btn.note-delete", handleNoteDelete);
+  $(".clear").on("click", handleArticleClear);
 
-  function renderArticles(article) {
-    let articleCards = [];
-    
-    for(let i = 0; i < article.length; i++) {
-      articleCards.push(createCard(article[i]));
-    };
+ 
+    // Empty the article container, run an AJAX request for any saved headlines
+    $.getJSON("/articles", function(data) {
+      // For each one
+      articleContainer.empty();
+      // If we have headlines, render them to the page
+      if (data && data.length) {
+        renderArticles(data);
+      } else {
+        // Otherwise render a message explaining we have no articles
+        renderEmpty();
+      }
+    });
 
-    $("#articles").append(articleCards);
+
+  function renderArticles(articles) {
+    // This function handles appending HTML containing our article data to the page
+    // We are passed an array of JSON containing all available articles in our database
+    var articleCards = [];
+    // We pass each article JSON object to the createCard function which returns a bootstrap
+    // card with our article data inside
+    for (var i = 0; i < articles.length; i++) {
+      articleCards.push(createCard(articles[i]));
+    }
+    // Once we have all of the HTML for the articles stored in our articleCards array,
+    // append them to the articleCards container
+    articleContainer.append(articleCards);
   }
 
   function createCard(article) {
@@ -25,84 +50,174 @@ $(document).ready(function() {
         $("<a class='article-link' target='_blank' rel='noopener noreferrer'>")
           .attr("href", article.link)
           .text(article.title),
-        $("<a class='btn btn-success save'>Save Article</a>")
+        $("<a class='btn btn-danger delete'>Delete From Saved</a>"),
+        $("<a class='btn btn-info notes'>Article Notes</a>")
       )
     );
 
     var cardBody = $("<div class='card-body'>").text(article.body);
 
     card.append(cardHeader, cardBody);
+
     // We attach the article's id to the jQuery element
-    // We will use this when trying to figure out which article the user wants to save
-    card.data("_id", article._id);
+    // We will use this when trying to figure out which article the user wants to remove or open notes for
+    card.attr("data-id", article._id);
     // We return the constructed card jQuery element
     return card;
+  }
+
+  function renderEmpty() {
+    // This function renders some HTML to the page explaining we don't have any articles to view
+    // Using a joined array of HTML string data because it's easier to read/change than a concatenated string
+    var emptyAlert = $(
+      [
+        "<div class='alert alert-warning text-center'>",
+        "<h4>Uh Oh. Looks like we don't have any saved articles.</h4>",
+        "</div>",
+        "<div class='card'>",
+        "<div class='card-header text-center'>",
+        "<h3>Would You Like to Browse Available Articles?</h3>",
+        "</div>",
+        "<div class='card-body text-center'>",
+        "<h4><a href='/'>Browse Articles</a></h4>",
+        "</div>",
+        "</div>"
+      ].join("")
+    );
+    // Appending this data to the page
+    articleContainer.append(emptyAlert);
+  }
+
+  function renderNotesList(data) {
+    // This function handles rendering note list items to our notes modal
+    // Setting up an array of notes to render after finished
+    // Also setting up a currentNote variable to temporarily store each note
+    var notesToRender = [];
+    var currentNote;
+    if (!data.notes.length) {
+      // If we have no notes, just display a message explaining this
+      currentNote = $("<li class='list-group-item'>No notes for this article yet.</li>");
+      notesToRender.push(currentNote);
+    } else {
+      // If we do have notes, go through each one
+      // for (var i = 0; i < data.length; i++) {
+        // Constructs an li element to contain our noteText and a delete button
+        currentNote = $("<li class='list-group-item note'>")
+          .text(data.notes)
+          .append($("<button class='btn btn-danger note-delete'>x</button>")
+          .attr("data-id", data._id));
+        // Store the note id on the delete button for easy access when trying to delete
+        // Adding our currentNote to the notesToRender array
+        notesToRender.push(currentNote);
+        // console.log(notesToRender);
+      // }
+    }
+    // console.log(notesToRender);
+    // Now append the notesToRender to the note-container inside the note modal
+    $(".note-container").append(notesToRender);
+  }
+
+  function handleArticleDelete() {
+    // This function handles deleting articles/headlines
+    // We grab the id of the article to delete from the card element the delete button sits inside
+    var articleToDelete = $(this)
+      .parents(".card")
+      .data();
+
+    // Remove card from page
+    $(this)
+      .parents(".card")
+      .remove();
+    // Using a delete method here just to be semantic since we are deleting an article/headline
+    $.ajax({
+      method: "DELETE",
+      url: "/articles/" + articleToDelete._id
+    }).then(function(data) {
+      // If this works out, run initPage again which will re-render our list of saved articles
+      if (data.ok) {
+        initPage();
+      }
+    });
+  }
+  function handleArticleNotes(event) {
+    // This function handles opening the notes modal and displaying our notes
+    // We grab the id of the article to get notes for from the card element the delete button sits inside
+    var currentArticle = $(this)
+      .parents(".card")
+      .attr("data-id");
+    // Grab any notes with this headline/article id
+    $.get("/articles/" + currentArticle).then(function(data) {
+      // Constructing our initial HTML to add to the notes modal
+      var modalText = $("<div class='container-fluid text-center'>").append(
+        $("<h4>").text("Notes For Article: " + data.title),
+        $("<hr>"),
+        $("<ul class='list-group note-container'>"),
+        $("<textarea id='textNote' placeholder='New Note' rows='4' cols='60'>"),
+        $("<button class='btn btn-success save'>Save Note</button>").attr("data-id", data._id)
+      );
+      // Adding the formatted HTML to the note modal
+      bootbox.dialog({
+        message: modalText,
+        closeButton: true
+      });
+      var noteData = {
+        _id: data.note._id,
+        notes: data.note.body || []
+      };
+
+      // console.log(noteData)
+      // Adding some information about the article and article notes to the save button for easy access
+      // When trying to add a new note
+      // $(".btn.save").data("article" + noteData);
+      // renderNotesList will populate the actual note HTML inside of the modal we just created/opened
+      renderNotesList(noteData);
+    });
+  }
+
+  function handleNoteSave() {
+    // This function handles what happens when a user tries to save a new note for an article
+    // Setting a variable to hold some formatted data about our note,
+    // grabbing the note typed into the input box
+    let thisId = $(this).attr("data-id");
+  
+    // If we actually have data typed into the note input field, format it
+    // and post it to the "/api/notes" route and send the formatted noteData as well
+      $.ajax({
+        method: "POST",
+        url: "/articles/" + thisId,
+        data: {
+          body: $("#textNote").val()
+        }
+      }).then(function(data) {
+        // When complete, close the modal
+        bootbox.hideAll();
+        // console.log(data);
+      })    
+    
   };
 
-  // Whenever someone clicks a p tag
-  $(document).on("click", "p", function() {
-    // Empty the notes from the note section
-    $("#notes").empty();
-    // Save the id from the p tag
-    var thisId = $(this).attr("data-id");
-
-    // Now make an ajax call for the Article
+  function handleNoteDelete() {
+    // This function handles the deletion of notes
+    // First we grab the id of the note we want to delete
+    // We stored this data on the delete button when we created it
+   let noteToDelete = $(this).data()
+   console.log(noteToDelete);
+    // console.log(noteToDelete);
+    // Perform an DELETE request to "/api/notes/" with the id of the note we're deleting as a parameter
     $.ajax({
-      method: "GET",
-      url: "/articles/" + thisId
-    })
-      // With that done, add the note information to the page
-      .then(function(data) {
-        console.log(data);
-        // The title of the article
-        $("#notes").append("<h2>" + data.title + "</h2>");
-        // An input to enter a new title
-        $("#notes").append("<input id='titleinput' name='title' >");
-        // A textarea to add a new note body
-        $("#notes").append("<textarea id='bodyinput' name='body'></textarea>");
-        // A button to submit a new note, with the id of the article saved to it
-        $("#notes").append(
-          "<button data-id='" + data._id + "' id='savenote'>Save Note</button>"
-        );
+      url: "/articles/" + noteToDelete,
+      method: "DELETE"
+    }).then(function() {
+      // When done, hide the modal
+      bootbox.hideAll();
+    });
+  }
 
-        // If there's a note in the article
-        if (data.note) {
-          // Place the title of the note in the title input
-          $("#titleinput").val(data.note.title);
-          // Place the body of the note in the body textarea
-          $("#bodyinput").val(data.note.body);
-        }
+  function handleArticleClear() {
+    $.get("api/clear")
+      .then(function() {
+        articleContainer.empty();
+        initPage();
       });
-  });
-
-  // When you click the savenote button
-  $(document).on("click", "#savenote", function() {
-    // Grab the id associated with the article from the submit button
-    var thisId = $(this).attr("data-id");
-
-    // Run a POST request to change the note, using what's entered in the inputs
-    $.ajax({
-      method: "POST",
-      url: "/articles/" + thisId,
-      data: {
-        // Value taken from title input
-        title: $("#titleinput").val(),
-        // Value taken from note textarea
-        body: $("#bodyinput").val()
-      }
-    })
-      // With that done
-      .then(function(data) {
-        // Log the response
-        console.log(data);
-        // Empty the notes section
-        $("#notes").empty();
-      });
-
-    // Also, remove the values entered in the input and textarea for note entry
-    $("#titleinput").val("");
-    $("#bodyinput").val("");
-  });
-
+  }
 });
-  

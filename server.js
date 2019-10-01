@@ -18,6 +18,10 @@ const app = express();
 // making a public static folder 
 app.use(express.static("public"));
 
+app.get("/", function(req, res) {
+    res.send("saved");
+})
+
 // configure middleware
 
 // Using morgan logger for logging requests
@@ -89,6 +93,27 @@ app.post("/articles/:id", function (req, res) {
     // creating a new note and pass the req.body to the entry
     db.Note.create(req.body).then(function(dbNote) {
         return db.Article.findOneAndUpdate({ _id: req.params.id }, { note: dbNote._id }, { new: true });
+    }).then(function(dbArticle) {
+        res.json(dbArticle);
+    }).catch(function(err) {
+        res.json(err);
+    });
+});
+
+app.post("/articles/:id", function (req, res) {
+    db.Article.deleteOne(req.body).then(function (dbArticle) {
+        return db.Article.findOneAndDelete({ _id: req.params.id }, { note: dbNote._id });
+    }).then(function(dbArticle) {
+        res.json(dbArticle);
+    }).catch(function(err) {
+        res.json(err);
+    });
+});
+
+// this will be to delete the note from the specific article
+app.delete("/articles/:id", function (req, res) {
+    db.Note.deleteOne(req.body).then(function (dbNote) {
+        return db.Article.findOneAndDelete({ _id: req.params.id }, { note: dbNote._id });
     }).then(function(dbArticle) {
         res.json(dbArticle);
     }).catch(function(err) {
