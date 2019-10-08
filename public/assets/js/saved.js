@@ -3,27 +3,33 @@
 $(document).ready(function() {
   // Getting a reference to the article container div we will be rendering all articles inside of
   var articleContainer = $(".article-container");
+  // call the render function
+  initPage();
   // Adding event listeners for dynamically generated buttons for deleting articles,
   // pulling up article notes, saving article notes, and deleting article notes
   $(document).on("click", ".btn.delete", handleArticleDelete);
   $(document).on("click", ".btn.notes", handleArticleNotes);
   $(document).on("click", ".btn.save", handleNoteSave);
-  $(document).on("click", ".btn.note-delete", handleNoteDelete);
+    // todo fix this function 
+  // $(document).on("click", ".btn.note-delete", handleNoteDelete);
+  $(document).on("click", ".scrape-new", handleArticleScrape);
   $(".clear").on("click", handleArticleClear);
 
  
     // Empty the article container, run an AJAX request for any saved headlines
-    $.getJSON("/articles", function(data) {
-      // For each one
-      articleContainer.empty();
-      // If we have headlines, render them to the page
-      if (data && data.length) {
-        renderArticles(data);
-      } else {
-        // Otherwise render a message explaining we have no articles
-        renderEmpty();
-      }
-    });
+    function initPage() {
+      $.getJSON("/articles", function(data) {
+        // For each one
+        articleContainer.empty();
+        // If we have headlines, render them to the page
+        if (data && data.length) {
+          renderArticles(data);
+        } else {
+          // Otherwise render a message explaining we have no articles
+          renderEmpty();
+        }
+      });
+    };
 
 
   function renderArticles(articles) {
@@ -50,7 +56,7 @@ $(document).ready(function() {
         $("<a class='article-link' target='_blank' rel='noopener noreferrer'>")
           .attr("href", article.link)
           .text(article.title),
-        $("<a class='btn btn-danger delete'>Delete From Saved</a>"),
+        $("<a class='btn btn-danger delete'>Delete Article</a>"),
         $("<a class='btn btn-info notes'>Article Notes</a>")
       )
     );
@@ -103,9 +109,7 @@ $(document).ready(function() {
       // for (var i = 0; i < data.length; i++) {
         // Constructs an li element to contain our noteText and a delete button
         currentNote = $("<li class='list-group-item note'>")
-          .text(data.notes)
-          .append($("<button class='btn btn-danger note-delete'>x</button>")
-          .attr("data-id", data._id));
+          .text(data.notes);
         // Store the note id on the delete button for easy access when trying to delete
         // Adding our currentNote to the notesToRender array
         notesToRender.push(currentNote);
@@ -123,6 +127,7 @@ $(document).ready(function() {
     var articleToDelete = $(this)
       .parents(".card")
       .data();
+      console.log(articleToDelete);
 
     // Remove card from page
     $(this)
@@ -131,7 +136,7 @@ $(document).ready(function() {
     // Using a delete method here just to be semantic since we are deleting an article/headline
     $.ajax({
       method: "DELETE",
-      url: "/articles/" + articleToDelete._id
+      url: "/articles/" + articleToDelete.id
     }).then(function(data) {
       // If this works out, run initPage again which will re-render our list of saved articles
       if (data.ok) {
@@ -191,33 +196,36 @@ $(document).ready(function() {
       }).then(function(data) {
         // When complete, close the modal
         bootbox.hideAll();
-        // console.log(data);
+        console.log(data);
       })    
     
   };
 
-  function handleNoteDelete() {
-    // This function handles the deletion of notes
-    // First we grab the id of the note we want to delete
-    // We stored this data on the delete button when we created it
-   let noteToDelete = $(this).data()
-   console.log(noteToDelete);
-    // console.log(noteToDelete);
-    // Perform an DELETE request to "/api/notes/" with the id of the note we're deleting as a parameter
-    $.ajax({
-      url: "/articles/" + noteToDelete,
-      method: "DELETE"
-    }).then(function() {
-      // When done, hide the modal
-      bootbox.hideAll();
-    });
-  }
+  // Todo need to fix this bug
+  // function handleNoteDelete() {
+  //   // This function handles the deletion of notes
+  //   // First we grab the id of the note we want to delete
+  //   // We stored this data on the delete button when we created it
+  //  let noteToDelete = $(this).data("id")
+  //  console.log(noteToDelete);
+  //   // console.log(noteToDelete);
+  //   // Perform an DELETE request to "/api/notes/" with the id of the note we're deleting as a parameter
+  //   $.ajax({
+  //     url: "/articles/" + noteToDelete,
+  //     method: "DELETE"
+  //   }).then(function() {
+  //     // When done, hide the modal
+  //     bootbox.hideAll();
+  //   });
+  // }
 
+  // function to clear the articles
   function handleArticleClear() {
-    $.get("api/clear")
-      .then(function() {
-        articleContainer.empty();
-        initPage();
-      });
+    // $.get("api/clear")
+    //   .then(function() {
+    //     articleContainer.empty();
+    //     initPage();
+    //   });
+    $(".article-container").empty();
   }
 });

@@ -31,54 +31,34 @@
 
       <div class="collapse navbar-collapse" id="navbarColor01">
         <ul class="navbar-nav mr-auto">
-          <li class="nav-item">
+          <li class="nav-item active">
             <a class="nav-link" href="/"
               >Home
               <span class="sr-only">(current)</span>
             </a>
           </li>
-          <li class="nav-item active">
-            <a class="nav-link" href="/saved"
-              >Saved Articles
-              <span class="sr-only">(current)</span>
-            </a>
+          <li class="nav-item">
+            <a class="nav-link" href="/saved">Saved Articles</a>
           </li>
           <li class="nav-item">
-            <a class="btn btn-danger clear">SCRAPE NEW ARTICLES!</a>
+            <a class="btn btn-danger scrape-new">SCRAPE NEW ARTICLES!</a>
+          </li>
+          <li class="nav-item">
             <a class="btn btn-danger clear">CLEAR ARTICLES!</a>
           </li>
         </ul>
       </div>
     </nav>
+
     <div class="jumbotron text-center">
       <div class="overlay"></div>
       <div class="background-image"></div>
       <div class="caption">
-        <h1>Saved Articles</h1>
-        <p>Your Saved Articles</p>
+        <h1>Mongo Scraper</h1>
+        <p>New York Times Edition</p>
       </div>
     </div>
-    <div class="container-fluid article-container">
-      <div data-_id="5d9033d227b7e000155b17b2" class="card">
-        <div class="card-header">
-          <h3>
-            <a
-              class="article-link"
-              target="_blank"
-              rel="noopener noreferrer"
-              href="https://www.nytimes.com/interactive/2019/09/27/opinion/impeachment-constitution.html"
-              >Mr. President, a Few Questions</a
-            >
-            <a class="btn btn-danger delete">Delete From Saved</a>
-            <a class="btn btn-info notes">Article Notes</a>
-          </h3>
-        </div>
-        <div class="card-body">
-          What was Russia’s role? Was anyone complicit? It is time to start
-          meticulously gathering the facts.
-        </div>
-      </div>
-    </div>
+    <div class="container-fluid article-container"></div>
 
     <footer class="footer">
       <div class="container">
@@ -87,8 +67,8 @@
     </footer>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js"></script>
-    <script src="/assets/js/saved.js"></script>
+    <script src="/assets/js/app.js"></script>
   </body>
 </html>

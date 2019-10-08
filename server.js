@@ -2,6 +2,7 @@
 const express = require('express');
 const logger = require("morgan");
 const mongoose = require('mongoose');
+const path = require("path");
 
 // the tools I need for scraping
 const axios = require('axios');
@@ -18,9 +19,9 @@ const app = express();
 // making a public static folder 
 app.use(express.static("public"));
 
-app.get("/", function(req, res) {
-    res.send("saved");
-})
+app.get("/saved", function(req, res) {
+    res.sendFile(path.join(__dirname, "./public/saved.html"));
+  });
 
 // configure middleware
 
@@ -55,18 +56,19 @@ app.get("/scrape", function(req, res) {
             // create a new article using the results object that was built from scraping
             db.Article.create(results).then(function(dbArticle) {
                 // viewing the added results into the console
-                console.log(dbArticle);
+                // console.log(dbArticle);
             }).catch(function(err) {
                 console.log(err);
             });
         });
+        res.send("Scrape Complete");
     });
 });
 
 // this route is for getting all of the articles from the db
 app.get("/articles", function(req, res) {
     // grabbing every document in the articles collection
-    db.Article.find({}).then(function(dbArticle) {
+    db.Article.find({}).limit(15).then(function(dbArticle) {
         // if this was successful in finding the articles then send them back to client
         res.json(dbArticle);
     }).catch(function(err) {
@@ -75,51 +77,69 @@ app.get("/articles", function(req, res) {
     });
 });
 
-// A route for grabbing a specific article by the id and populate it with that specific note
-app.get("/articles/:id", function(req, res) {
+// this route is for getting all of the articles in the savedArticles db.
+app.get("/save", function(req, res) {
+    db.savedArticle.find({}).then(function(dbSaved) {
+        res.json(dbSaved);
+    }).catch(function(err) {
+        res.json(err);
+    });
+});
+
+// A route for grabbing a specific SAVED article by the id and populate it with that specific note
+app.get("/save/:id", function(req, res) {
     // using id passed in its parameter prepare a query that find the matching one
     // populate all of the saved Articles associated 
-    db.Article.findOne({ _id: req.params.id }).populate("note")
-    .then(function(dbArticle) {
+    db.savedArticle.findOne({ _id: req.params.id }).populate("note")
+    .then(function(dbSaved) {
         // if we were able to successfully find an article send it back to the client
-        res.json(dbArticle);
+        res.json(dbSaved);
     }).catch(function(err) {
         // if there is an error send it to the client
         res.json(err);
     })
 });
 
-app.post("/articles/:id", function (req, res) {
+app.post("/saved/:id", function (req, res) {
     // creating a new note and pass the req.body to the entry
     db.Note.create(req.body).then(function(dbNote) {
-        return db.Article.findOneAndUpdate({ _id: req.params.id }, { note: dbNote._id }, { new: true });
-    }).then(function(dbArticle) {
-        res.json(dbArticle);
+        return db.savedArticle.findOneAndUpdate({ _id: req.params.id }, { note: dbNote._id }, { new: true });
+    }).then(function(dbSaved) {
+        res.json(dbSaved);
     }).catch(function(err) {
         res.json(err);
     });
 });
 
-app.post("/articles/:id", function (req, res) {
-    db.Article.deleteOne(req.body).then(function (dbArticle) {
-        return db.Article.findOneAndDelete({ _id: req.params.id }, { note: dbNote._id });
-    }).then(function(dbArticle) {
+app.delete("/saved/:id", function (req, res) {
+    db.savedArticle.deleteOne(req.body).then(function (dbSaved) {
+        return db.savedArticle.findOneAndUpdate({ _id: req.params.id }, { note: dbNote._id });
+    }).then(function(dbSaved) {
+        res.json(dbSaved);
+    }).catch(function(err) {
+        res.json(err);
+    });
+});
+
+// this will be for clearing and deleting everything in the Articles db
+app.delete("/articles", function(req, res) {
+    db.Article.deleteMany(req.body).then(function (dbArticle) {
         res.json(dbArticle);
+        console.log(dbArticle);
     }).catch(function(err) {
         res.json(err);
     });
 });
 
 // this will be to delete the note from the specific article
-app.delete("/articles/:id", function (req, res) {
-    db.Note.deleteOne(req.body).then(function (dbNote) {
-        return db.Article.findOneAndDelete({ _id: req.params.id }, { note: dbNote._id });
-    }).then(function(dbArticle) {
-        res.json(dbArticle);
-    }).catch(function(err) {
-        res.json(err);
-    });
-});
+// app.delete("/articles/:id", function (req, res) {
+//         db.Note.deleteOne(req.body)
+//         .then(function(dbArticle) {
+//         res.json(dbArticle);
+//     }).catch(function(err) {
+//         res.json(err);
+//     });
+// });
 
 // starting the server
 app.listen(PORT, function() {
