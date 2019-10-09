@@ -12,13 +12,12 @@ $(document).ready(function() {
   $(document).on("click", ".btn.save", handleNoteSave);
     // todo fix this function 
   // $(document).on("click", ".btn.note-delete", handleNoteDelete);
-  $(document).on("click", ".scrape-new", handleArticleScrape);
-  $(".clear").on("click", handleArticleClear);
+  // $(".clear").on("click", handleArticleClear);
 
  
     // Empty the article container, run an AJAX request for any saved headlines
     function initPage() {
-      $.getJSON("/articles", function(data) {
+      $.getJSON("/save", function(data) {
         // For each one
         articleContainer.empty();
         // If we have headlines, render them to the page
@@ -136,7 +135,7 @@ $(document).ready(function() {
     // Using a delete method here just to be semantic since we are deleting an article/headline
     $.ajax({
       method: "DELETE",
-      url: "/articles/" + articleToDelete.id
+      url: "/save/" + articleToDelete.id
     }).then(function(data) {
       // If this works out, run initPage again which will re-render our list of saved articles
       if (data.ok) {
@@ -151,7 +150,7 @@ $(document).ready(function() {
       .parents(".card")
       .attr("data-id");
     // Grab any notes with this headline/article id
-    $.get("/articles/" + currentArticle).then(function(data) {
+    $.get("/save/" + currentArticle).then(function(data) {
       // Constructing our initial HTML to add to the notes modal
       var modalText = $("<div class='container-fluid text-center'>").append(
         $("<h4>").text("Notes For Article: " + data.title),
@@ -160,6 +159,7 @@ $(document).ready(function() {
         $("<textarea id='textNote' placeholder='New Note' rows='4' cols='60'>"),
         $("<button class='btn btn-success save'>Save Note</button>").attr("data-id", data._id)
       );
+      // console.log(data._id);
       // Adding the formatted HTML to the note modal
       bootbox.dialog({
         message: modalText,
@@ -170,7 +170,8 @@ $(document).ready(function() {
         notes: data.note.body || []
       };
 
-      // console.log(noteData)
+      console.log(noteData);
+
       // Adding some information about the article and article notes to the save button for easy access
       // When trying to add a new note
       // $(".btn.save").data("article" + noteData);
@@ -184,12 +185,13 @@ $(document).ready(function() {
     // Setting a variable to hold some formatted data about our note,
     // grabbing the note typed into the input box
     let thisId = $(this).attr("data-id");
+    console.log(thisId);
   
     // If we actually have data typed into the note input field, format it
     // and post it to the "/api/notes" route and send the formatted noteData as well
       $.ajax({
         method: "POST",
-        url: "/articles/" + thisId,
+        url: "/save/" + thisId,
         data: {
           body: $("#textNote").val()
         }
@@ -220,12 +222,12 @@ $(document).ready(function() {
   // }
 
   // function to clear the articles
-  function handleArticleClear() {
-    // $.get("api/clear")
-    //   .then(function() {
-    //     articleContainer.empty();
-    //     initPage();
-    //   });
-    $(".article-container").empty();
-  }
+//   function handleArticleClear() {
+//     // $.get("api/clear")
+//     //   .then(function() {
+//     //     articleContainer.empty();
+//     //     initPage();
+//     //   });
+//     $(".article-container").empty();
+//   }
 });

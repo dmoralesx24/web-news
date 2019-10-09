@@ -4,7 +4,7 @@ $(document).ready(function() {
   // and "scrape new article" buttons
   initPage();
   var articleContainer = $(".article-container");
-  $(document).on("click", ".btn.save", handleArticleSave);
+  $(document).on("click", ".btn.save-article", handleArticleSave);
   $(document).on("click", ".scrape-new", handleArticleScrape);
   $(".clear").on("click", handleArticleClear);
 
@@ -12,6 +12,7 @@ $(document).ready(function() {
   function initPage() {
     $.getJSON("/articles", function(data) {
       // For each one
+      // console.log(data);
       articleContainer.empty();
       // If we have headlines, render them to the page
       if (data && data.length) {
@@ -90,27 +91,40 @@ $(document).ready(function() {
     // This function is triggered when the user wants to save an article
     // When we rendered the article initially, we attached a javascript object containing the headline id
     // to the element using the .data method. Here we retrieve that.
-    let articleToSave = $(this)
+    let card = $(this).parents(".card");
+    let articleId = $(this)
       .parents(".card")
-      .data();
+      .attr("data-id");
 
-    // Remove card from page
-    $(this)
-      .parents(".card")
-      .remove();
+    let articleLink = card.find(".article-link").attr("href");
 
-    articleToSave.saved = true;
+    let articleTitle = card.find(".article-link").text();
+
+    let articleBody = card.find(".card-body").text();
+
     // Using a patch method to be semantic since this is an update to an existing record in our collection
     $.ajax({
-      method: "PUT",
-      url: "/save/" + articleToSave._id,
-      data: articleToSave
-    }).then(function(data) {
-      // If the data was saved successfully
-      if (data.saved) {
-        // Run the initPage function again. This will reload the entire list of articles
-        initPage();
+      method: "POST",
+      url: "/save/" + articleId,
+      data: {
+        title: articleTitle,
+        link: articleLink,
+        body: articleBody
       }
+    }).then(function(data) {
+      // Run the initPage function again. This will reload the entire list of articles
+    });
+
+    // this will delete the article out of this db and just post it into the saved articles
+    $.ajax({
+      method: "DELETE",
+      url: "/articles/" + articleId
+    }).then(function(data) {
+      // Remove card from page
+      $(this)
+        .parents(".card")
+        .remove();
+      initPage();
     });
   }
 
@@ -120,7 +134,6 @@ $(document).ready(function() {
       // If we are able to successfully scrape the NYTIMES and compare the articles to those
       // already in our collection, re render the articles on the page
       // and let the user know how many unique articles we were able to save
-      console.log(data)
       initPage();
       bootbox.alert($("<h3 class='text-center m-top-80'>").text(data.message));
     });
@@ -128,22 +141,12 @@ $(document).ready(function() {
 
   // this will clear the articles out
   function handleArticleClear() {
-
     $.ajax({
       method: "DELETE",
       url: "/articles"
     }).then(function(data) {
-      console.log(data);
       articleContainer.empty();
       initPage();
     });
   }
-
-  // todo this might work for scraping new articles
-  // this will scrape new articles
-  // $(".scrape-new").on("click", function() {
-  //   $.getJSON("/scrape", function(data) {
-  //     location.reload();
-  //   });
-  // });
 });

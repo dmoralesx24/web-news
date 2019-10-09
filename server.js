@@ -100,7 +100,17 @@ app.get("/save/:id", function(req, res) {
     })
 });
 
-app.post("/saved/:id", function (req, res) {
+// this will post the save article to the SaveArticle db
+app.post("/save/:id", function (req, res) {
+    db.savedArticle.create(req.body).then(function (savedArticle) {
+        res.send(savedArticle);
+    }).catch(function(err) {
+        res.json(err);
+    })
+})
+
+// to post a note
+app.post("/save/:id", function (req, res) {
     // creating a new note and pass the req.body to the entry
     db.Note.create(req.body).then(function(dbNote) {
         return db.savedArticle.findOneAndUpdate({ _id: req.params.id }, { note: dbNote._id }, { new: true });
@@ -111,15 +121,23 @@ app.post("/saved/:id", function (req, res) {
     });
 });
 
-app.delete("/saved/:id", function (req, res) {
-    db.savedArticle.deleteOne(req.body).then(function (dbSaved) {
-        return db.savedArticle.findOneAndUpdate({ _id: req.params.id }, { note: dbNote._id });
-    }).then(function(dbSaved) {
+// this will delete the specific saved article
+app.delete("/save/:id", function (req, res) {
+    db.savedArticle.deleteOne(req.body).then(function(dbSaved) {
         res.json(dbSaved);
     }).catch(function(err) {
         res.json(err);
     });
 });
+
+// this will CLEAR all the SAVED Articles
+// app.delete("/saved", function (req, res) {
+//     db.savedArticle.deleteMany(req.body).then(function(dbSaved) {
+//         res.json(dbSaved);
+//     }).catch(function(err) {
+//         res.json(err);
+//     });
+// });
 
 // this will be for clearing and deleting everything in the Articles db
 app.delete("/articles", function(req, res) {
@@ -130,6 +148,15 @@ app.delete("/articles", function(req, res) {
         res.json(err);
     });
 });
+
+// this will delete a specific article from the Article db when saved into the ArticleSaved db
+app.delete("/articles/:id", function (req, res) {
+    db.Article.deleteOne(req.body).then(function (dbArticle) {
+        res.json(dbArticle);
+    }).catch(function(err) {
+        res.json(err);
+    })
+})
 
 // this will be to delete the note from the specific article
 // app.delete("/articles/:id", function (req, res) {
