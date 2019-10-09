@@ -12,7 +12,7 @@ $(document).ready(function() {
   $(document).on("click", ".btn.save", handleNoteSave);
     // todo fix this function 
   // $(document).on("click", ".btn.note-delete", handleNoteDelete);
-  // $(".clear").on("click", handleArticleClear);
+  $(".clear").on("click", handleArticleClear);
 
  
     // Empty the article container, run an AJAX request for any saved headlines
@@ -108,8 +108,8 @@ $(document).ready(function() {
       // for (var i = 0; i < data.length; i++) {
         // Constructs an li element to contain our noteText and a delete button
         currentNote = $("<li class='list-group-item note'>")
-          .text(data.notes);
-        // Store the note id on the delete button for easy access when trying to delete
+          .text(data.notes)
+          // Store the note id on the delete button for easy access when trying to delete
         // Adding our currentNote to the notesToRender array
         notesToRender.push(currentNote);
         // console.log(notesToRender);
@@ -191,9 +191,9 @@ $(document).ready(function() {
     // and post it to the "/api/notes" route and send the formatted noteData as well
       $.ajax({
         method: "POST",
-        url: "/save/" + thisId,
+        url: "/savenote/" + thisId,
         data: {
-          body: $("#textNote").val()
+          body: $(".bootbox-body textarea").val()
         }
       }).then(function(data) {
         // When complete, close the modal
@@ -213,7 +213,7 @@ $(document).ready(function() {
   //   // console.log(noteToDelete);
   //   // Perform an DELETE request to "/api/notes/" with the id of the note we're deleting as a parameter
   //   $.ajax({
-  //     url: "/articles/" + noteToDelete,
+  //     url: "/savenote/" + noteToDelete,
   //     method: "DELETE"
   //   }).then(function() {
   //     // When done, hide the modal
@@ -222,12 +222,13 @@ $(document).ready(function() {
   // }
 
   // function to clear the articles
-//   function handleArticleClear() {
-//     // $.get("api/clear")
-//     //   .then(function() {
-//     //     articleContainer.empty();
-//     //     initPage();
-//     //   });
-//     $(".article-container").empty();
-//   }
+  function handleArticleClear() {
+    $.ajax({
+      method: "DELETE",
+      url: "/save"
+    }).then(function(data) {
+      articleContainer.empty();
+      initPage();
+    });
+  }
 });
