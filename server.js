@@ -11,7 +11,7 @@ const cheerio = require('cheerio');
 // requiring all the database models created 
 const db = require('./models');
 
-const PORT = 3002;
+const PORT = process.env.PORT || 3002;
 
 // initializing express
 const app = express();
@@ -32,7 +32,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // connecting to the database
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://dmorales:galaxy24@ds233288.mlab.com:33288/heroku_wf68nb7g";
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://dmorales:galaxy24@ds333248.mlab.com:33248/heroku_343ld2rz";
 mongoose.connect(MONGODB_URI, { useNewUrlParser: true });
 
 // this will be the get route for the scraping of the New York times website
