@@ -32,36 +32,30 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // connecting to the database
-<<<<<<< HEAD
-const MONGODB_URI =
-  process.env.MONGODB_URI || "mongodb://dmorales:Galaxy24!@ds333238.mlab.com:33238/heroku_75r8c976";
-=======
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/mongoHeadlines";
->>>>>>> parent of f65f10e... new and new files
 mongoose.connect(MONGODB_URI, { useNewUrlParser: true });
 
 
 // this will be the get route for the scraping of the New York times website
 app.get("/scrape", function(req, res) {
     // first I make an axios call to grab the html website
-    axios.get("https://www.nytimes.com/topic/organization/the-new-york-times").then(function(response) {
+    axios.get("http://www.nytimes.com").then(function(response) {
         // load the response into the cheerio and save it
         const $ = cheerio.load(response.data);
-
         // now I'm grabbing every h2 element within the class of story-meta 
-        $(".story-meta").each(function(i, element) {
+        $(".assetWrapper").each(function(i, element) {
             // save an empty results object
             const results = {};
 
             // add the title and story of every link and save them as properties to the result object
-            results.link = $(this).parent("a").attr("href");
-            results.title = $(this).children("h2").text();
-            results.body = $(this).children("p").text();
+            results.link = $(this).find("a").attr("href");
+            results.title = $(this).find("h2").text().trim();
+            results.body = $(this).find("p").text().trim();
 
             // create a new article using the results object that was built from scraping
             db.Article.create(results).then(function(dbArticle) {
                 // viewing the added results into the console
-                // console.log(dbArticle);
+                console.log(dbArticle);
             }).catch(function(err) {
                 console.log(err);
             });
@@ -115,7 +109,7 @@ app.post("/save/:id", function (req, res) {
 })
 
 // to post a note
-app.post("/save/:id", function (req, res) {
+app.post("/savenote/:id", function (req, res) {
     // creating a new note and pass the req.body to the entry
     db.Note.create(req.body).then(function(dbNote) {
         return db.savedArticle.findOneAndUpdate({ _id: req.params.id }, { note: dbNote._id }, { new: true });
@@ -136,13 +130,13 @@ app.delete("/save/:id", function (req, res) {
 });
 
 // this will CLEAR all the SAVED Articles
-// app.delete("/saved", function (req, res) {
-//     db.savedArticle.deleteMany(req.body).then(function(dbSaved) {
-//         res.json(dbSaved);
-//     }).catch(function(err) {
-//         res.json(err);
-//     });
-// });
+app.delete("/save", function (req, res) {
+    db.savedArticle.deleteMany(req.body).then(function(dbSaved) {
+        res.json(dbSaved);
+    }).catch(function(err) {
+        res.json(err);
+    });
+});
 
 // this will be for clearing and deleting everything in the Articles db
 app.delete("/articles", function(req, res) {

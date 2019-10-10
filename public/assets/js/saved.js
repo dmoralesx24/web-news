@@ -12,7 +12,7 @@ $(document).ready(function() {
   $(document).on("click", ".btn.save", handleNoteSave);
     // todo fix this function 
   // $(document).on("click", ".btn.note-delete", handleNoteDelete);
-  // $(".clear").on("click", handleArticleClear);
+  $(".clear").on("click", handleArticleClear);
 
  
     // Empty the article container, run an AJAX request for any saved headlines
@@ -126,7 +126,6 @@ $(document).ready(function() {
     var articleToDelete = $(this)
       .parents(".card")
       .data();
-      console.log(articleToDelete);
 
     // Remove card from page
     $(this)
@@ -166,7 +165,7 @@ $(document).ready(function() {
         closeButton: true
       });
       var noteData = {
-        _id: data.note._id,
+        _id: data.note.id,
         notes: data.note.body || []
       };
 
@@ -191,14 +190,13 @@ $(document).ready(function() {
     // and post it to the "/api/notes" route and send the formatted noteData as well
       $.ajax({
         method: "POST",
-        url: "/save/" + thisId,
+        url: "/savenote/" + thisId,
         data: {
           body: $("#textNote").val()
         }
       }).then(function(data) {
         // When complete, close the modal
         bootbox.hideAll();
-        console.log(data);
       })    
     
   };
@@ -222,12 +220,13 @@ $(document).ready(function() {
   // }
 
   // function to clear the articles
-//   function handleArticleClear() {
-//     // $.get("api/clear")
-//     //   .then(function() {
-//     //     articleContainer.empty();
-//     //     initPage();
-//     //   });
-//     $(".article-container").empty();
-//   }
+  function handleArticleClear() {
+    $.ajax({
+      method: "DELETE",
+      url: "/save"
+    }).then(function(data) {
+      articleContainer.empty();
+      initPage();
+    });
+  }
 });
