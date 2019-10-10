@@ -201,7 +201,7 @@ $(document).ready(function() {
     
   };
 
-  // Todo need to fix this bug
+
   // function handleNoteDelete() {
   //   // This function handles the deletion of notes
   //   // First we grab the id of the note we want to delete

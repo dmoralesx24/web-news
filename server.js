@@ -32,7 +32,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // connecting to the database
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/mongoHeadlines";
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://dmorales:Galaxy24!@ds233288.mlab.com:33288/heroku_glk0zs2w";
 mongoose.connect(MONGODB_URI, { useNewUrlParser: true });
 
 
