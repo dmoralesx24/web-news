@@ -33,7 +33,7 @@ app.use(express.json());
 
 // connecting to the database
 const MONGODB_URI =
-  process.env.MONGODB_URI || "mongodb://localhost/mongoHeadlines";
+  process.env.MONGODB_URI || "mongodb://dmorales:Galaxy24!@ds333238.mlab.com:33238/heroku_75r8c976";
 mongoose.connect(MONGODB_URI, { useNewUrlParser: true });
 
 // this will be the get route for the scraping of the New York times website
